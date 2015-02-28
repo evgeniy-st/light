@@ -10,15 +10,15 @@ BRIGHTNESS = [50, 50]
 UPDATE_BRIGHTNESS_TIMEOUT = 3
 UPDATE_DISPLAY_TIMEOUT = 5
 UPDATE_KBD_TIMEOUT = 0.5
-IDLE_KBD_TIMEOUT = 60000
+MAX_USER_IDLE = 60000
 
 
-def create_image_fswebcam(path):
+def createImageFswebcam(path):
     command = ['/usr/bin/fswebcam -q -r 1280x720 -D 1 --no-banner ' + path]
     subprocess.call(command, shell=True)
 
 
-def calc_avgcolor(path):
+def calcAVGColor(path):
     command = ['/usr/bin/convert ' + path + ' -colorspace GRAY -resize 1x1 txt:']
     s = subprocess.check_output(command, shell=True)
     s = s.decode('utf-8').split('\n')[1]
@@ -27,39 +27,23 @@ def calc_avgcolor(path):
     return value
 
 
-def del_image(path):
+def deleteImage(path):
     os.remove(path)
 
 
 def updateBrightness():
     if len(BRIGHTNESS) >= 5:
         BRIGHTNESS.pop(0)
-    create_image_fswebcam(IMAGE_PATH)
-    BRIGHTNESS.append(calc_avgcolor(IMAGE_PATH))
-    del_image(IMAGE_PATH)
+    createImageFswebcam(IMAGE_PATH)
+    avg = calcAVGColor(IMAGE_PATH)
+    deleteImage(IMAGE_PATH)
+    BRIGHTNESS.append(avg)
     Timer(UPDATE_BRIGHTNESS_TIMEOUT, updateBrightness).start()
 
 
 def getBrightnessValue():
     current_brightness = int(round(sum(BRIGHTNESS)/len(BRIGHTNESS), 0))
     return current_brightness
-
-
-def setKbdBacklight(value):
-    brightness = int(round(value/12, 0))
-    idle = getPowerSaveStatus_dbus()
-    idle_time = 60000
-    if idle < idle_time:
-        if brightness <= 3:
-            if brightness == 0:
-                brightness = 1
-            if getKbdBacklight_dbus() != brightness:
-                setKbdBacklight_dbus(brightness)
-        else:
-            if getKbdBacklight_dbus() != brightness:
-                setKbdBacklight_dbus(0)
-    else:
-        setKbdBacklight_dbus(0)
 
 
 def setKbdBacklight_dbus(value):
@@ -94,7 +78,7 @@ def getPowerSaveStatus_dbus():
 
 def updateKbd():
     idle = getPowerSaveStatus_dbus()
-    if idle < IDLE_KBD_TIMEOUT:
+    if idle < MAX_USER_IDLE:
         brightness = int(round(getBrightnessValue()/12, 0))
         if brightness <= 3:
             if brightness == 0:
@@ -126,16 +110,13 @@ def getDisplayBacklight_dbus():
     return result
 
 
-def setDisplayBacklight(value):
+def updateDisplay():
+    value = getBrightnessValue()
     if value <= 90:
         value += 10
     brightness = round(value, -1)
     if getDisplayBacklight_dbus() != brightness:
         setDisplayBacklight_dbus(brightness)
-
-
-def updateDisplay():
-    setDisplayBacklight(getBrightnessValue())
     Timer(UPDATE_DISPLAY_TIMEOUT, updateDisplay).start()
 
 if __name__ == '__main__':
