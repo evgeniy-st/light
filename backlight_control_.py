@@ -5,17 +5,16 @@ import os
 from time import sleep
 
 IMAGE_PATH = '/home/stea/temp/cam.jpg'
-BRIGHTNESS = [50, 50, 50]
+BRIGHTNESS = [50, 50]
 
 
 def getBrightness():
-    global BRIGHTNESS
+    if len(BRIGHTNESS) >= 3:
+        BRIGHTNESS.pop(0)
     create_image_fswebcam(IMAGE_PATH)
     BRIGHTNESS.append(calc_avgcolor(IMAGE_PATH))
     del_image(IMAGE_PATH)
-    if len(BRIGHTNESS) == 3:
-        BRIGHTNESS.pop(0)
-    current_brightness = int(round(sum(l)/len(l), 0))
+    current_brightness = int(round(sum(BRIGHTNESS)/len(BRIGHTNESS), 0))
     return current_brightness
 
 
