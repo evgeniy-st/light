@@ -2,7 +2,6 @@
 import subprocess
 import dbus
 import os
-from time import sleep
 from threading import Timer
 
 IMAGE_PATH = '/home/stea/temp/cam.jpg'
@@ -46,7 +45,7 @@ def getBrightnessValue():
     return current_brightness
 
 
-def setKbdBacklight_dbus(value):
+def setKbdBacklight(value):
     bus = dbus.SystemBus()
     obj = bus.get_object('org.freedesktop.UPower',
                          '/org/freedesktop/UPower/KbdBacklight')
@@ -56,7 +55,7 @@ def setKbdBacklight_dbus(value):
         interface.SetBrightness(dbus.Int32(value))
 
 
-def getKbdBacklight_dbus():
+def getKbdBacklight():
     bus = dbus.SystemBus()
     obj = bus.get_object('org.freedesktop.UPower',
                          '/org/freedesktop/UPower/KbdBacklight')
@@ -66,7 +65,7 @@ def getKbdBacklight_dbus():
     return result
 
 
-def getPowerSaveStatus_dbus():
+def getPowerSaveStatus():
     bus = dbus.SessionBus()
     obj = bus.get_object('org.freedesktop.ScreenSaver',
                          '/org/freedesktop/ScreenSaver')
@@ -77,23 +76,23 @@ def getPowerSaveStatus_dbus():
 
 
 def updateKbd():
-    idle = getPowerSaveStatus_dbus()
+    idle = getPowerSaveStatus()
     if idle < MAX_USER_IDLE:
         brightness = int(round(getBrightnessValue()/12, 0))
         if brightness <= 3:
             if brightness == 0:
                 brightness = 1
-            if getKbdBacklight_dbus() != brightness:
-                setKbdBacklight_dbus(brightness)
+            if getKbdBacklight() != brightness:
+                setKbdBacklight(brightness)
         else:
-            if getKbdBacklight_dbus() != brightness:
-                setKbdBacklight_dbus(0)
+            if getKbdBacklight() != brightness:
+                setKbdBacklight(0)
     else:
-        setKbdBacklight_dbus(0)
+        setKbdBacklight(0)
     Timer(UPDATE_KBD_TIMEOUT, updateKbd).start()
 
 
-def setDisplayBacklight_dbus(value):
+def setDisplayBacklight(value):
     bus = dbus.SessionBus()
     obj = bus.get_object('org.kde.Solid.PowerManagement',
                          '/org/kde/Solid/PowerManagement/Actions/BrightnessControl')
@@ -101,7 +100,7 @@ def setDisplayBacklight_dbus(value):
     interface.setBrightness(dbus.Int32(value))
 
 
-def getDisplayBacklight_dbus():
+def getDisplayBacklight():
     bus = dbus.SessionBus()
     obj = bus.get_object('org.kde.Solid.PowerManagement',
                          '/org/kde/Solid/PowerManagement/Actions/BrightnessControl')
@@ -115,8 +114,8 @@ def updateDisplay():
     if value <= 90:
         value += 10
     brightness = round(value, -1)
-    if getDisplayBacklight_dbus() != brightness:
-        setDisplayBacklight_dbus(brightness)
+    if getDisplayBacklight() != brightness:
+        setDisplayBacklight(brightness)
     Timer(UPDATE_DISPLAY_TIMEOUT, updateDisplay).start()
 
 if __name__ == '__main__':
