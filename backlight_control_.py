@@ -5,11 +5,11 @@ import os
 from threading import Timer
 
 IMAGE_PATH = '/home/stea/temp/cam.jpg'
-BRIGHTNESS = [50, 50]
+BRIGHTNESS = [50]
 UPDATE_BRIGHTNESS_TIMEOUT = 3
 UPDATE_DISPLAY_TIMEOUT = 5
 UPDATE_KBD_TIMEOUT = 0.5
-MAX_USER_IDLE = 60000
+MAX_USER_IDLE = 30000
 
 
 def createImageFswebcam(path):
